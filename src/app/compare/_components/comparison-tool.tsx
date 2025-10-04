@@ -34,16 +34,16 @@ function PlanetCard({ planet, imageSeed }: { planet: Exoplanet, imageSeed: strin
                     />
                 </div>
                 <CardTitle>{planet.pl_name}</CardTitle>
-                <CardDescription>Host Star: {planet.hostname}</CardDescription>
+                <CardDescription>Status: {planet.koi_disposition || 'N/A'}</CardDescription>
             </CardHeader>
             <CardContent className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm flex-grow">
                 <div>
-                    <p className="text-muted-foreground">Discovered</p>
-                    <p className="font-medium">{planet.disc_year}</p>
+                    <p className="text-muted-foreground">KOI Score</p>
+                    <p className="font-medium">{planet.koi_score ? planet.koi_score.toFixed(3) : 'N/A'}</p>
                 </div>
-                <div>
+                 <div>
                     <p className="text-muted-foreground">Method</p>
-                    <p className="font-medium truncate">{planet.disc_method}</p>
+                    <p className="font-medium truncate">{planet.disc_method || 'N/A'}</p>
                 </div>
                 <div>
                     <p className="text-muted-foreground">Orbital Period</p>
@@ -54,8 +54,8 @@ function PlanetCard({ planet, imageSeed }: { planet: Exoplanet, imageSeed: strin
                     <p className="font-medium">{planet.pl_rade ? `${planet.pl_rade.toFixed(2)}` : 'N/A'}</p>
                 </div>
                 <div>
-                    <p className="text-muted-foreground">Mass (M⊕)</p>
-                    <p className="font-medium">{planet.pl_masse ? `${planet.pl_masse.toFixed(2)}` : 'N/A'}</p>
+                    <p className="text-muted-foreground">Equilibrium Temp.</p>
+                    <p className="font-medium">{planet.koi_teq ? `${planet.koi_teq.toLocaleString()} K` : 'N/A'}</p>
                 </div>
                 <div>
                     <p className="text-muted-foreground">Star Temp.</p>

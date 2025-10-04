@@ -13,6 +13,7 @@ import {
   YAxis,
   CartesianGrid,
   Label,
+  Legend
 } from 'recharts';
 import { useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -21,70 +22,84 @@ const chartConfig = {
   radius: {
     label: 'Radius (R⊕)',
   },
-  mass: {
-    label: 'Mass (M⊕)',
+  orbital_period: {
+    label: 'Orbital Period (days)',
   },
   temperature: {
-    label: 'Star Temp. (K)'
+    label: 'Equilibrium Temp. (K)'
+  },
+  CONFIRMED: {
+    label: 'Confirmed',
+    color: 'hsl(var(--chart-1))',
+  },
+  CANDIDATE: {
+    label: 'Candidate',
+    color: 'hsl(var(--chart-2))',
+  },
+  'FALSE POSITIVE': {
+    label: 'False Positive',
+    color: 'hsl(var(--chart-4))',
   },
 };
 
 export function ExoplanetCharts({ data }: { data: Exoplanet[] }) {
-  const massVsRadiusData = useMemo(() => {
-    return data
-      .filter((p) => p.pl_masse && p.pl_rade)
-      .map((p) => ({
-        name: p.pl_name,
-        mass: p.pl_masse,
-        radius: p.pl_rade,
-      }));
-  }, [data]);
-  
-  const tempVsRadiusData = useMemo(() => {
-    return data
-      .filter((p) => p.st_teff && p.pl_rade)
-      .map((p) => ({
-        name: p.pl_name,
-        temperature: p.st_teff,
-        radius: p.pl_rade,
-      }));
-  }, [data]);
+  const confirmed = useMemo(() => data.filter(p => p.koi_disposition === 'CONFIRMED' && p.pl_orbper && p.pl_rade), [data]);
+  const candidates = useMemo(() => data.filter(p => p.koi_disposition === 'CANDIDATE' && p.pl_orbper && p.pl_rade), [data]);
+  const falsePositives = useMemo(() => data.filter(p => p.koi_disposition === 'FALSE POSITIVE' && p.pl_orbper && p.pl_rade), [data]);
 
+  const tempVsRadiusConfirmed = useMemo(() => data.filter(p => p.koi_disposition === 'CONFIRMED' && p.koi_teq && p.pl_rade), [data]);
+  const tempVsRadiusCandidates = useMemo(() => data.filter(p => p.koi_disposition === 'CANDIDATE' && p.koi_teq && p.pl_rade), [data]);
+  
   return (
-    <Tabs defaultValue="mass-radius" className="w-full">
+    <Tabs defaultValue="period-radius" className="w-full">
       <TabsList className="grid w-full grid-cols-2">
-        <TabsTrigger value="mass-radius">Mass vs. Radius</TabsTrigger>
+        <TabsTrigger value="period-radius">Period vs. Radius</TabsTrigger>
         <TabsTrigger value="temp-radius">Temp vs. Radius</TabsTrigger>
       </TabsList>
-      <TabsContent value="mass-radius">
+      <TabsContent value="period-radius">
         <ChartContainer config={chartConfig} className="aspect-square h-[350px]">
           <ScatterChart
             margin={{ top: 20, right: 20, bottom: 40, left: 40 }}
           >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis
-              dataKey="mass"
+              dataKey="pl_orbper"
               type="number"
-              name="Mass"
+              name="Orbital Period"
               domain={['dataMin', 'dataMax']}
+               scale="log"
               tickFormatter={(value) => value.toLocaleString()}
-              label={{ value: "Planet Mass (M⊕)", position: "insideBottom", offset: -25 }}
+              label={{ value: "Orbital Period (days, log scale)", position: "insideBottom", offset: -25 }}
             />
             <YAxis
-              dataKey="radius"
+              dataKey="pl_rade"
               type="number"
               name="Radius"
               domain={['dataMin', 'dataMax']}
-              label={{ value: "Planet Radius (R⊕)", angle: -90, position: "insideLeft", style: { textAnchor: 'middle' } }}
+              scale="log"
+              label={{ value: "Planet Radius (R⊕, log scale)", angle: -90, position: "insideLeft", style: { textAnchor: 'middle' } }}
+               tickFormatter={(value) => value.toLocaleString()}
             />
             <ChartTooltip
               cursor={{ strokeDasharray: '3 3' }}
               content={<ChartTooltipContent
-                labelKey="name"
-                formatter={(value, name) => [`${(value as number).toFixed(2)}`, chartConfig[name as keyof typeof chartConfig]?.label]}
+                labelKey="pl_name"
+                formatter={(value, name, props) => {
+                  const { payload } = props;
+                  if (name === 'CONFIRMED' || name === 'CANDIDATE' || name === 'FALSE POSITIVE') {
+                    return [
+                        `Radius: ${(payload.pl_rade as number).toFixed(2)} R⊕`,
+                        `Period: ${(payload.pl_orbper as number).toFixed(2)} days`,
+                    ]
+                  }
+                  return [];
+                }}
               />}
             />
-            <Scatter name="Exoplanets" data={massVsRadiusData} fill="hsl(var(--accent))" shape="circle" />
+             <Legend />
+            <Scatter name="CONFIRMED" data={confirmed} fill={chartConfig.CONFIRMED.color} shape="circle" />
+            <Scatter name="CANDIDATE" data={candidates} fill={chartConfig.CANDIDATE.color} shape="circle" />
+            <Scatter name="FALSE POSITIVE" data={falsePositives} fill={chartConfig['FALSE POSITIVE'].color} shape="triangle" opacity={0.5} />
           </ScatterChart>
         </ChartContainer>
       </TabsContent>
@@ -95,28 +110,41 @@ export function ExoplanetCharts({ data }: { data: Exoplanet[] }) {
           >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis
-              dataKey="temperature"
+              dataKey="koi_teq"
               type="number"
-              name="Star Temperature"
+              name="Equilibrium Temperature"
               domain={['dataMin', 'dataMax']}
               tickFormatter={(value) => value.toLocaleString()}
-              label={{ value: "Stellar Temperature (K)", position: "insideBottom", offset: -25 }}
+              label={{ value: "Equilibrium Temperature (K)", position: "insideBottom", offset: -25 }}
             />
             <YAxis
-              dataKey="radius"
+              dataKey="pl_rade"
               type="number"
               name="Radius"
+              scale="log"
               domain={['dataMin', 'dataMax']}
-              label={{ value: "Planet Radius (R⊕)", angle: -90, position: "insideLeft", style: { textAnchor: 'middle' } }}
+              label={{ value: "Planet Radius (R⊕, log scale)", angle: -90, position: "insideLeft", style: { textAnchor: 'middle' } }}
+               tickFormatter={(value) => value.toLocaleString()}
             />
             <ChartTooltip
               cursor={{ strokeDasharray: '3 3' }}
               content={<ChartTooltipContent
-                labelKey="name"
-                formatter={(value, name) => [`${(value as number).toLocaleString()}`, chartConfig[name as keyof typeof chartConfig]?.label]}
+                labelKey="pl_name"
+                 formatter={(value, name, props) => {
+                  const { payload } = props;
+                  if (name === 'CONFIRMED' || name === 'CANDIDATE') {
+                    return [
+                        `Radius: ${(payload.pl_rade as number).toFixed(2)} R⊕`,
+                        `Temp: ${(payload.koi_teq as number).toLocaleString()} K`,
+                    ]
+                  }
+                  return [];
+                }}
               />}
             />
-            <Scatter name="Exoplanets" data={tempVsRadiusData} fill="hsl(var(--accent))" shape="circle" />
+            <Legend />
+            <Scatter name="CONFIRMED" data={tempVsRadiusConfirmed} fill={chartConfig.CONFIRMED.color} shape="circle" />
+            <Scatter name="CANDIDATE" data={tempVsRadiusCandidates} fill={chartConfig.CANDIDATE.color} shape="circle" />
           </ScatterChart>
         </ChartContainer>
       </TabsContent>

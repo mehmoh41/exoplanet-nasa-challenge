@@ -14,23 +14,34 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ArrowUpDown, ChevronDown, ChevronUp } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
 
 type SortKey = keyof Exoplanet | '';
 type SortDirection = 'asc' | 'desc';
 
 const columns: { key: SortKey; label: string; tooltip: string }[] = [
   { key: 'pl_name', label: 'Name', tooltip: 'Planet Name' },
-  { key: 'hostname', label: 'Star', tooltip: 'Host Star Name' },
-  { key: 'disc_year', label: 'Year', tooltip: 'Discovery Year' },
-  { key: 'disc_method', label: 'Method', tooltip: 'Discovery Method' },
+  { key: 'koi_disposition', label: 'Status', tooltip: 'KOI Disposition' },
+  { key: 'koi_score', label: 'Score', tooltip: 'KOI Score' },
   { key: 'pl_orbper', label: 'Period (d)', tooltip: 'Orbital Period (days)' },
   { key: 'pl_rade', label: 'Radius (R⊕)', tooltip: 'Planet Radius (Earth Radii)' },
-  { key: 'pl_masse', label: 'Mass (M⊕)', tooltip: 'Planet Mass (Earth Mass)' },
+  { key: 'st_teff', label: 'Star Temp (K)', tooltip: 'Stellar Temperature (K)' },
 ];
+
+const DispositionBadge = ({ disposition }: { disposition?: string }) => {
+  if (!disposition) return null;
+
+  let variant: 'default' | 'secondary' | 'destructive' = 'secondary';
+  if (disposition === 'CONFIRMED') variant = 'default';
+  if (disposition === 'FALSE POSITIVE') variant = 'destructive';
+
+  return <Badge variant={variant}>{disposition.replace(/_/g, ' ')}</Badge>;
+};
+
 
 export function ExoplanetTable({ data }: { data: Exoplanet[] }) {
   const [filter, setFilter] = useState('');
-  const [sortKey, setSortKey] = useState<SortKey>('disc_year');
+  const [sortKey, setSortKey] = useState<SortKey>('koi_score');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
   const handleSort = (key: SortKey) => {
@@ -38,7 +49,7 @@ export function ExoplanetTable({ data }: { data: Exoplanet[] }) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
       setSortKey(key);
-      setSortDirection('asc');
+      setSortDirection('desc');
     }
   };
 
@@ -46,12 +57,20 @@ export function ExoplanetTable({ data }: { data: Exoplanet[] }) {
     let sortableData = [...data];
     if (sortKey) {
       sortableData.sort((a, b) => {
-        const aVal = a[sortKey];
-        const bVal = b[sortKey];
+        const aVal = a[sortKey as keyof Exoplanet];
+        const bVal = b[sortKey as keyof Exoplanet];
+        
         if (aVal === null || aVal === undefined) return 1;
         if (bVal === null || bVal === undefined) return -1;
+
+        if (typeof aVal === 'string' && typeof bVal === 'string') {
+             const compare = aVal.localeCompare(bVal);
+             return sortDirection === 'asc' ? compare : -compare;
+        }
+
         if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
         if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+        
         return 0;
       });
     }
@@ -63,8 +82,7 @@ export function ExoplanetTable({ data }: { data: Exoplanet[] }) {
     return sortedData.filter(
       (planet) =>
         planet.pl_name.toLowerCase().includes(filter.toLowerCase()) ||
-        planet.hostname.toLowerCase().includes(filter.toLowerCase()) ||
-        planet.disc_method.toLowerCase().includes(filter.toLowerCase())
+        (planet.koi_disposition && planet.koi_disposition.toLowerCase().replace(/_/g, ' ').includes(filter.toLowerCase()))
     );
   }, [sortedData, filter]);
 
@@ -83,7 +101,7 @@ export function ExoplanetTable({ data }: { data: Exoplanet[] }) {
     <div className="w-full">
       <div className="flex items-center pb-4">
         <Input
-          placeholder="Filter displayed planets by name, star, or method..."
+          placeholder="Filter displayed planets by name or status..."
           value={filter}
           onChange={(event) => setFilter(event.target.value)}
           className="max-w-sm"
@@ -112,12 +130,11 @@ export function ExoplanetTable({ data }: { data: Exoplanet[] }) {
               filteredData.map((planet) => (
                 <TableRow key={planet.pl_name}>
                   <TableCell className="font-medium">{planet.pl_name}</TableCell>
-                  <TableCell>{planet.hostname}</TableCell>
-                  <TableCell>{planet.disc_year}</TableCell>
-                  <TableCell className="truncate max-w-40">{planet.disc_method}</TableCell>
+                  <TableCell><DispositionBadge disposition={planet.koi_disposition} /></TableCell>
+                  <TableCell className="text-right">{planet.koi_score?.toFixed(3) ?? 'N/A'}</TableCell>
                   <TableCell className="text-right">{planet.pl_orbper?.toFixed(2) ?? 'N/A'}</TableCell>
                   <TableCell className="text-right">{planet.pl_rade?.toFixed(2) ?? 'N/A'}</TableCell>
-                  <TableCell className="text-right">{planet.pl_masse?.toFixed(2) ?? 'N/A'}</TableCell>
+                  <TableCell className="text-right">{planet.st_teff?.toLocaleString() ?? 'N/A'}</TableCell>
                 </TableRow>
               ))
             ) : (
