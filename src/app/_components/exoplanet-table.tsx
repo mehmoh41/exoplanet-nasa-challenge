@@ -48,8 +48,8 @@ export function ExoplanetTable({ data }: { data: Exoplanet[] }) {
       sortableData.sort((a, b) => {
         const aVal = a[sortKey];
         const bVal = b[sortKey];
-        if (aVal === null) return 1;
-        if (bVal === null) return -1;
+        if (aVal === null || aVal === undefined) return 1;
+        if (bVal === null || bVal === undefined) return -1;
         if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
         if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
         return 0;
@@ -59,6 +59,7 @@ export function ExoplanetTable({ data }: { data: Exoplanet[] }) {
   }, [data, sortKey, sortDirection]);
 
   const filteredData = useMemo(() => {
+    if (!filter) return sortedData;
     return sortedData.filter(
       (planet) =>
         planet.pl_name.toLowerCase().includes(filter.toLowerCase()) ||
@@ -80,9 +81,9 @@ export function ExoplanetTable({ data }: { data: Exoplanet[] }) {
   
   return (
     <div className="w-full">
-      <div className="flex items-center py-4">
+      <div className="flex items-center pb-4">
         <Input
-          placeholder="Filter by name, star, or method..."
+          placeholder="Filter displayed planets by name, star, or method..."
           value={filter}
           onChange={(event) => setFilter(event.target.value)}
           className="max-w-sm"
@@ -107,7 +108,7 @@ export function ExoplanetTable({ data }: { data: Exoplanet[] }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredData.length ? (
+            {filteredData.length > 0 ? (
               filteredData.map((planet) => (
                 <TableRow key={planet.pl_name}>
                   <TableCell className="font-medium">{planet.pl_name}</TableCell>

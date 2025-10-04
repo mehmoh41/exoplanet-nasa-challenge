@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import type { Exoplanet } from '@/lib/types';
 import {
   Select,
@@ -12,6 +12,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Image from 'next/image';
+import { Loader2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
 function PlanetCard({ planet, imageSeed }: { planet: Exoplanet, imageSeed: string }) {
     const planetImage = {
@@ -66,26 +68,75 @@ function PlanetCard({ planet, imageSeed }: { planet: Exoplanet, imageSeed: strin
 }
 
 
-function PlanetSelector({ planets, onSelect, selectedValue }: { planets: Exoplanet[], onSelect: (name: string) => void, selectedValue?: string }) {
+function PlanetSelector({ 
+    planets, 
+    onSelect, 
+    selectedValue,
+    onLoadMore,
+    hasMore,
+    isAppending
+}: { 
+    planets: Exoplanet[], 
+    onSelect: (name: string) => void, 
+    selectedValue?: string,
+    onLoadMore: () => void,
+    hasMore: boolean,
+    isAppending: boolean
+}) {
+  const [search, setSearch] = useState('');
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const filteredPlanets = planets.filter(p => p.pl_name.toLowerCase().includes(search.toLowerCase()));
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    if (scrollHeight - scrollTop - clientHeight < 100 && hasMore && !isAppending) {
+        onLoadMore();
+    }
+  }
+
   return (
     <Select onValueChange={onSelect} value={selectedValue}>
       <SelectTrigger className="w-full">
         <SelectValue placeholder="Select a planet..." />
       </SelectTrigger>
       <SelectContent>
-        <ScrollArea className="h-72">
-          {planets.map((p) => (
+         <div className="p-2">
+            <Input 
+                placeholder="Search planets..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full"
+            />
+         </div>
+        <ScrollArea className="h-72" onScrollCapture={handleScroll} ref={scrollRef}>
+          {filteredPlanets.map((p) => (
             <SelectItem key={p.pl_name} value={p.pl_name}>
               {p.pl_name}
             </SelectItem>
           ))}
+          {hasMore && (
+            <div className="flex justify-center items-center p-2">
+                {isAppending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Scroll to load more'}
+            </div>
+          )}
         </ScrollArea>
       </SelectContent>
     </Select>
   );
 }
 
-export function ComparisonTool({ planets }: { planets: Exoplanet[] }) {
+export function ComparisonTool({ 
+    planets, 
+    onLoadMore, 
+    hasMore,
+    isAppending
+}: { 
+    planets: Exoplanet[],
+    onLoadMore: () => void,
+    hasMore: boolean,
+    isAppending: boolean
+}) {
   const [planet1, setPlanet1] = useState<Exoplanet | null>(null);
   const [planet2, setPlanet2] = useState<Exoplanet | null>(null);
 
@@ -94,15 +145,29 @@ export function ComparisonTool({ planets }: { planets: Exoplanet[] }) {
   return (
     <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <PlanetSelector planets={planets} onSelect={(name) => setPlanet1(findPlanet(name))} selectedValue={planet1?.pl_name} />
-            <PlanetSelector planets={planets} onSelect={(name) => setPlanet2(findPlanet(name))} selectedValue={planet2?.pl_name} />
+            <PlanetSelector 
+                planets={planets} 
+                onSelect={(name) => setPlanet1(findPlanet(name))} 
+                selectedValue={planet1?.pl_name}
+                onLoadMore={onLoadMore}
+                hasMore={hasMore}
+                isAppending={isAppending}
+            />
+            <PlanetSelector 
+                planets={planets} 
+                onSelect={(name) => setPlanet2(findPlanet(name))} 
+                selectedValue={planet2?.pl_name} 
+                onLoadMore={onLoadMore}
+                hasMore={hasMore}
+                isAppending={isAppending}
+            />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
             <div>
                 {planet1 ? <PlanetCard planet={planet1} imageSeed="planet1" /> : <div className="flex h-full min-h-[400px] items-center justify-center rounded-lg border border-dashed text-muted-foreground"><p>Select Planet 1</p></div>}
             </div>
             <div>
-                {planet2 ? <PlanetCard planet={planet2} imageSeed="planet2" /> : <div className="flex h-full min-h-[400px] items-center justify-center rounded-lg border border-dashed text-muted-foreground"><p>Select Planet 2</p></div>}
+                {planet2 ? <PlanetCard planet={planet2} imageSeed="planet2" /> : <div className="flex h-full min-h-[400px_] items-center justify-center rounded-lg border border-dashed text-muted-foreground"><p>Select Planet 2</p></div>}
             </div>
         </div>
     </div>
