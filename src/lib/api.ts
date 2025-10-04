@@ -7,8 +7,6 @@ const BASE_COLUMNS = 'pl_name,hostname,disc_year,disc_method,pl_orbper,pl_rade,p
 
 export async function getExoplanets({ offset = 0, limit = 300 }: { offset?: number, limit?: number } = {}): Promise<Exoplanet[] | null> {
   // A simplified query to fetch the most recent discoveries.
-  // The API has shown to be unstable with more complex queries involving offsets.
-  // This approach prioritizes stability.
   const query = `select+TOP+${limit}+${BASE_COLUMNS}+from+pscomppars+where+pl_masse+is+not+null+and+pl_rade+is+not+null+order+by+disc_year+desc,pl_name+asc`;
   const fullUrl = `${API_URL}?query=${query}&format=json`;
 
@@ -18,9 +16,8 @@ export async function getExoplanets({ offset = 0, limit = 300 }: { offset?: numb
     });
 
     if (!response.ok) {
-      console.error(`Failed to fetch data: ${response.statusText}`);
       const errorText = await response.text();
-      console.error(`API Error details: ${errorText}`);
+      console.error(`API Error: ${response.statusText}`, errorText);
       return null;
     }
 
@@ -29,15 +26,15 @@ export async function getExoplanets({ offset = 0, limit = 300 }: { offset?: numb
     // Filter out entries without a planet name as they are not useful
     const filteredData = data.filter((p: any) => p.pl_name);
     
-    // With the simplified query, offset logic is handled by slicing the result from the single reliable fetch.
+    // The simplified query doesn't support offset, so we slice.
     if (offset > 0 && offset >= filteredData.length) {
-      return []; // Return empty if offset is beyond the fetched data
+      return [];
     }
     
     return filteredData.slice(offset, offset + limit);
 
   } catch (error) {
-    console.error('Error fetching exoplanet data:', error);
+    console.error('Network error while fetching exoplanet data:', error);
     return null;
   }
 }
