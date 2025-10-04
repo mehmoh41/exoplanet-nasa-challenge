@@ -1,41 +1,11 @@
-'use client';
-
-import { useState, useEffect } from 'react';
 import type { Exoplanet } from '@/lib/types';
 import { ComparisonTool } from './_components/comparison-tool';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Terminal } from 'lucide-react';
-import { getExoplanets } from '@/lib/api';
-import CompareLoading from './loading';
+import { getExoplanets } from '@/lib/data';
 
-export default function ComparePage() {
-  const [planets, setPlanets] = useState<Exoplanet[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    async function loadData() {
-      try {
-        setIsLoading(true);
-        const data = await getExoplanets();
-        if (data) {
-          setPlanets(data);
-        } else {
-          setError('Could not load exoplanet data from the local file. Please ensure src/lib/exoplanet.csv exists.');
-        }
-      } catch (e) {
-        console.error(e);
-        setError('An unexpected error occurred while loading exoplanet data.');
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    loadData();
-  }, []);
-
-  if (isLoading) {
-    return <CompareLoading />;
-  }
+export default async function ComparePage() {
+  const planets: Exoplanet[] = await getExoplanets();
 
   return (
     <div className="flex flex-col gap-6">
@@ -48,11 +18,11 @@ export default function ComparePage() {
           properties.
         </p>
       </div>
-      {error ? (
+      {!planets || planets.length === 0 ? (
         <Alert variant="destructive">
           <Terminal className="h-4 w-4" />
           <AlertTitle>Error Loading Data</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>Could not load exoplanet data from the local file. Please ensure src/lib/exoplanet.csv exists.</AlertDescription>
         </Alert>
       ) : (
         <ComparisonTool planets={planets} />

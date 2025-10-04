@@ -3,7 +3,8 @@ import path from 'path';
 import fs from 'fs';
 import Papa from 'papaparse';
 
-export async function getExoplanets(): Promise<Exoplanet[] | null> {
+// This function now exclusively runs on the server.
+export async function getExoplanets(): Promise<Exoplanet[]> {
   try {
     const csvFilePath = path.join(process.cwd(), 'src', 'lib', 'exoplanet.csv');
     const csvFile = fs.readFileSync(csvFilePath, 'utf8');
@@ -20,12 +21,12 @@ export async function getExoplanets(): Promise<Exoplanet[] | null> {
             },
             error: (error) => {
                 console.error('Error parsing CSV file:', error);
-                reject(null);
+                reject([]);
             }
         });
     });
   } catch (error) {
     console.error('An unexpected error occurred while reading exoplanet data:', error);
-    return null;
+    return [];
   }
 }
