@@ -17,7 +17,7 @@ export async function getExoplanets(): Promise<Exoplanet[]> {
             complete: (results) => {
                 if (results.errors.length) {
                   console.error('CSV Parsing Errors:', results.errors);
-                  reject([]);
+                  reject(new Error('Failed to parse CSV file.'));
                   return;
                 }
                 
@@ -48,7 +48,7 @@ export async function getExoplanets(): Promise<Exoplanet[]> {
             },
             error: (error) => {
                 console.error('Error parsing CSV file:', error);
-                reject([]);
+                reject(error);
             }
         });
     });
