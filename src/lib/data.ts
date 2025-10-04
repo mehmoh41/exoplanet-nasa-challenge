@@ -15,22 +15,27 @@ export async function getExoplanets(): Promise<Exoplanet[]> {
             dynamicTyping: true,
             skipEmptyLines: true,
             complete: (results) => {
-                // Filter out any rows that are null or don't have a planet name
-                const validData = results.data.filter((row: any) => row && (row.pl_name || row.kepler_name));
+                if (results.errors.length) {
+                  console.error('CSV Parsing Errors:', results.errors);
+                  reject([]);
+                  return;
+                }
+                
+                // Filter out any rows that are null or don't have a kepler_name
+                const validData = results.data.filter((row: any) => row && row.kepler_name);
                 
                 // Map the CSV data to the Exoplanet type
                 const mappedData: Exoplanet[] = validData.map((row: any) => ({
-                    pl_name: row.kepler_name || row.pl_name,
+                    pl_name: row.kepler_name,
                     hostname: row.hostname,
                     disc_year: row.disc_year,
-                    disc_method: row.discoverymethod || row.disc_method,
-                    pl_orbper: row.koi_period || row.pl_orbper,
-                    pl_rade: row.koi_prad || row.pl_rade,
-                    pl_masse: row.pl_masse,
-                    st_teff: row.koi_steff || row.st_teff,
-                    st_rad: row.koi_srad || row.st_rad,
-                    st_mass: row.st_mass,
-                    // Kepler-specific fields for future use
+                    disc_method: row.discoverymethod, // Assuming this exists from API, might not be in CSV
+                    pl_orbper: row.koi_period,
+                    pl_rade: row.koi_prad,
+                    pl_masse: null, // Not in the provided CSV headers
+                    st_teff: row.koi_steff,
+                    st_rad: row.koi_srad,
+                    st_mass: null, // Not in the provided CSV headers
                     koi_disposition: row.koi_disposition,
                     koi_score: row.koi_score,
                     koi_fpflag_nt: row.koi_fpflag_nt,
