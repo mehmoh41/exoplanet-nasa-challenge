@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, type ReactNode } from 'react';
+import { useState, useMemo, type ReactNode, useEffect } from 'react';
 import type { Exoplanet } from '@/lib/types';
 import {
   Table,
@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowUpDown, ChevronDown, ChevronUp } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type SortKey = keyof Exoplanet | '';
 type SortDirection = 'asc' | 'desc';
@@ -40,9 +41,17 @@ const DispositionBadge = ({ disposition }: { disposition?: string }) => {
 
 
 export function ExoplanetTable({ data }: { data: Exoplanet[] }) {
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('koi_score');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 10000); // 10-second loader
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -126,7 +135,17 @@ export function ExoplanetTable({ data }: { data: Exoplanet[] }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredData.length > 0 ? (
+            {loading ? (
+              [...Array(10)].map((_, i) => (
+                <TableRow key={i}>
+                  {columns.map((col) => (
+                    <TableCell key={col.key}>
+                      <Skeleton className="h-5 w-full" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : filteredData.length > 0 ? (
               filteredData.map((planet) => (
                 <TableRow key={planet.pl_name}>
                   <TableCell className="font-medium">{planet.pl_name}</TableCell>

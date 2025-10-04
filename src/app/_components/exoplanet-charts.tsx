@@ -15,8 +15,9 @@ import {
   Label,
   Legend
 } from 'recharts';
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const chartConfig = {
   radius: {
@@ -43,6 +44,15 @@ const chartConfig = {
 };
 
 export function ExoplanetCharts({ data }: { data: Exoplanet[] }) {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 5000); // 5-second loader
+    return () => clearTimeout(timer);
+  }, []);
+  
   const confirmed = useMemo(() => data.filter(p => p.koi_disposition === 'CONFIRMED' && p.pl_orbper && p.pl_rade), [data]);
   const candidates = useMemo(() => data.filter(p => p.koi_disposition === 'CANDIDATE' && p.pl_orbper && p.pl_rade), [data]);
   const falsePositives = useMemo(() => data.filter(p => p.koi_disposition === 'FALSE POSITIVE' && p.pl_orbper && p.pl_rade), [data]);
@@ -50,6 +60,14 @@ export function ExoplanetCharts({ data }: { data: Exoplanet[] }) {
   const tempVsRadiusConfirmed = useMemo(() => data.filter(p => p.koi_disposition === 'CONFIRMED' && p.koi_teq && p.pl_rade), [data]);
   const tempVsRadiusCandidates = useMemo(() => data.filter(p => p.koi_disposition === 'CANDIDATE' && p.koi_teq && p.pl_rade), [data]);
   
+  if (loading) {
+    return (
+        <div className="aspect-square h-[390px] w-full">
+             <Skeleton className="h-full w-full" />
+        </div>
+    )
+  }
+
   return (
     <Tabs defaultValue="period-radius" className="w-full">
       <TabsList className="grid w-full grid-cols-2">

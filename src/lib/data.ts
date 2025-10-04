@@ -3,17 +3,9 @@ import path from 'path';
 import fs from 'fs';
 import Papa from 'papaparse';
 
-// Helper function to introduce an artificial delay
-function sleep(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 // This function now exclusively runs on the server.
 export async function getExoplanets(): Promise<Exoplanet[]> {
   try {
-    // Artificial delay to demonstrate loading UI
-    await sleep(2000); 
-    
     const csvFilePath = path.join(process.cwd(), 'src', 'lib', 'exoplanet.csv');
     const csvFile = fs.readFileSync(csvFilePath, 'utf8');
 
