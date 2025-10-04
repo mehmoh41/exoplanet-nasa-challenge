@@ -46,7 +46,7 @@ export async function getExoplanets(): Promise<Exoplanet[]> {
                 }));
                 resolve(mappedData);
             },
-            error: (error) => {
+            error: (error: any) => {
                 console.error('Error parsing CSV file:', error);
                 reject(error);
             }
