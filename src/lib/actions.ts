@@ -64,10 +64,10 @@ export async function performAnalysis(
     } else {
       // General Analysis
       const result = await analyzeExoplanetData({ data: fileContent });
-      if (!result.analysisResults) {
+      if (!result) {
           return { message: 'AI analysis failed to produce results. Please try a different file.' };
       }
-      return { message: 'Analysis complete.', results: result.analysisResults };
+      return { message: 'Analysis complete.', results: result };
     }
 
   } catch (error) {

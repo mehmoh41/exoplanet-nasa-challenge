@@ -35,7 +35,5 @@ export const AnalyzeExoplanetDataInputSchema = z.object({
 });
 export type AnalyzeExoplanetDataInput = z.infer<typeof AnalyzeExoplanetDataInputSchema>;
 
-export const AnalyzeExoplanetDataOutputSchema = z.object({
-  analysisResults: z.string().describe('AI analysis results of the exoplanet data.'),
-});
+export const AnalyzeExoplanetDataOutputSchema = z.string().describe('AI analysis results of the exoplanet data in markdown format.');
 export type AnalyzeExoplanetDataOutput = z.infer<typeof AnalyzeExoplanetDataOutputSchema>;

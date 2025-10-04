@@ -15,7 +15,7 @@ export async function analyzeExoplanetData(input: AnalyzeExoplanetDataInput): Pr
 const analyzeExoplanetDataPrompt = ai.definePrompt({
   name: 'analyzeExoplanetDataPrompt',
   input: {schema: AnalyzeExoplanetDataInputSchema},
-  output: {schema: AnalyzeExoplanetDataOutputSchema},
+  output: {format: 'text'},
   prompt: `You are an expert astrophysicist and data analyst. Your task is to analyze the provided exoplanet data and generate a concise, insightful report.
 
 The data is provided in the following format:
@@ -45,7 +45,7 @@ const analyzeExoplanetDataFlow = ai.defineFlow(
     outputSchema: AnalyzeExoplanetDataOutputSchema,
   },
   async input => {
-    const {output} = await analyzeExoplanetDataPrompt(input);
-    return output!;
+    const {text} = await analyzeExoplanetDataPrompt(input);
+    return text;
   }
 );
