@@ -23,7 +23,8 @@ export async function getExoplanets({ offset = 0, limit = 100 }: { offset?: numb
       console.error(`Failed to fetch data: ${response.statusText}`);
       const errorText = await response.text();
       console.error(`API Error details: ${errorText}`);
-      throw new Error(`Failed to fetch exoplanet data: ${response.statusText}`);
+      // Return null instead of throwing to allow UI to handle it
+      return null;
     }
 
     const data: any[] = await response.json();
@@ -36,7 +37,7 @@ export async function getExoplanets({ offset = 0, limit = 100 }: { offset?: numb
 
   } catch (error) {
     console.error('Error fetching exoplanet data:', error);
-    // Re-throwing the error to be handled by the calling component
-    throw error;
+    // Return null on network error to allow UI to handle it gracefully
+    return null;
   }
 }
