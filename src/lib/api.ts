@@ -7,8 +7,8 @@ const BASE_COLUMNS = 'pl_name,hostname,disc_year,disc_method,pl_orbper,pl_rade,p
 
 export async function getExoplanets({ offset = 0, limit = 100 }: { offset?: number, limit?: number } = {}): Promise<Exoplanet[] | null> {
   // The API doesn't support a direct OFFSET keyword.
-  // A common workaround is to fetch all records up to the desired point (offset + limit) and then slice.
-  // This is inefficient but necessary given the API's constraints.
+  // We fetch all records up to the desired point (offset + limit) and then slice on the client.
+  // This is inefficient but a necessary workaround for this specific API's limitations.
   const top = offset + limit;
   const query = `select+TOP+${top}+${BASE_COLUMNS}+from+pscomppars+order+by+disc_year+desc,pl_name+asc`;
   const fullUrl = `${API_URL}?query=${query}&format=json`;
