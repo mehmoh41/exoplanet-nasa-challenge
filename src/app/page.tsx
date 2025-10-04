@@ -17,13 +17,10 @@ import { getExoplanets } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import Loading from './loading';
 
-const PAGE_SIZE = 300;
-
 export default function ExplorePage() {
   const [allPlanets, setAllPlanets] = useState<Exoplanet[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [page, setPage] = useState(1);
 
   useEffect(() => {
     async function loadData() {
@@ -33,27 +30,17 @@ export default function ExplorePage() {
         if (data) {
           setAllPlanets(data);
         } else {
-          setError('Could not fetch exoplanet data from the NASA Exoplanet Archive. Please try again later.');
+          setError('Could not load exoplanet data. The data file might be missing or corrupted.');
         }
       } catch (e) {
         console.error(e);
-        setError('Could not fetch exoplanet data from the NASA Exoplanet Archive. Please try again later.');
+        setError('An unexpected error occurred while loading exoplanet data.');
       } finally {
         setIsLoading(false);
       }
     }
     loadData();
   }, []);
-
-  const paginatedPlanets = useMemo(() => {
-    return allPlanets.slice(0, page * PAGE_SIZE);
-  }, [allPlanets, page]);
-  
-  const hasMore = paginatedPlanets.length < allPlanets.length;
-
-  const handleLoadMore = () => {
-      setPage(prev => prev + 1);
-  };
 
   if (isLoading) {
     return <Loading />;
@@ -64,7 +51,7 @@ export default function ExplorePage() {
       <div className="container mx-auto py-10">
         <Alert variant="destructive">
           <Terminal className="h-4 w-4" />
-          <AlertTitle>Error Fetching Data</AlertTitle>
+          <AlertTitle>Error Loading Data</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       </div>
@@ -105,7 +92,7 @@ export default function ExplorePage() {
             <div className="text-2xl font-bold">
               {totalPlanets.toLocaleString()}
             </div>
-            <p className="text-xs text-muted-foreground">planets discovered</p>
+            <p className="text-xs text-muted-foreground">planets in local data</p>
           </CardContent>
         </Card>
         <Card>
@@ -153,18 +140,11 @@ export default function ExplorePage() {
           <CardHeader>
             <CardTitle>Exoplanet Database</CardTitle>
             <CardDescription>
-              Displaying {paginatedPlanets.length} of {allPlanets.length} exoplanets. Click headers to sort.
+              Displaying {allPlanets.length} exoplanets from local data. Click headers to sort.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
-            <ExoplanetTable data={paginatedPlanets} />
-            {hasMore && (
-                <div className="flex justify-center">
-                    <Button onClick={handleLoadMore}>
-                        Load More
-                    </Button>
-                </div>
-            )}
+            <ExoplanetTable data={allPlanets} />
           </CardContent>
         </Card>
         <Card className="lg:col-span-2">
