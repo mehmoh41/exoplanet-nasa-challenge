@@ -16,6 +16,8 @@ import { ArrowUpDown, ChevronDown, ChevronUp } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useDebounce } from '@/hooks/use-debounce';
+import { cn } from '@/lib/utils';
 
 type SortKey = keyof Exoplanet | '';
 type SortDirection = 'asc' | 'desc';
@@ -45,6 +47,9 @@ export function ExoplanetTable({ data }: { data: Exoplanet[] }) {
   const [filter, setFilter] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('koi_score');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  
+  const debouncedFilter = useDebounce(filter, 300);
+  const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -52,6 +57,10 @@ export function ExoplanetTable({ data }: { data: Exoplanet[] }) {
     }, 10000); // 10-second loader
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    setIsSearching(true);
+  }, [filter]);
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -87,13 +96,18 @@ export function ExoplanetTable({ data }: { data: Exoplanet[] }) {
   }, [data, sortKey, sortDirection]);
 
   const filteredData = useMemo(() => {
-    if (!filter) return sortedData;
-    return sortedData.filter(
+    if (!debouncedFilter) {
+      setIsSearching(false);
+      return sortedData;
+    };
+    const results = sortedData.filter(
       (planet) =>
-        planet.pl_name.toLowerCase().includes(filter.toLowerCase()) ||
-        (planet.koi_disposition && planet.koi_disposition.toLowerCase().replace(/_/g, ' ').includes(filter.toLowerCase()))
+        planet.pl_name.toLowerCase().includes(debouncedFilter.toLowerCase()) ||
+        (planet.koi_disposition && planet.koi_disposition.toLowerCase().replace(/_/g, ' ').includes(debouncedFilter.toLowerCase()))
     );
-  }, [sortedData, filter]);
+    setIsSearching(false);
+    return results;
+  }, [sortedData, debouncedFilter]);
 
   const renderSortIcon = (key: SortKey): ReactNode => {
     if (sortKey !== key) {
@@ -134,7 +148,7 @@ export function ExoplanetTable({ data }: { data: Exoplanet[] }) {
               ))}
             </TableRow>
           </TableHeader>
-          <TableBody>
+          <TableBody className={cn(isSearching && 'animate-pulse opacity-50')}>
             {loading ? (
               [...Array(10)].map((_, i) => (
                 <TableRow key={i}>
