@@ -1,6 +1,7 @@
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { performAnalysis, type AnalysisState } from '@/lib/actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,7 +32,7 @@ function SubmitButton() {
 
 export function AnalysisForm() {
   const initialState: AnalysisState = { message: '' };
-  const [state, formAction] = useFormState(performAnalysis, initialState);
+  const [state, formAction] = useActionState(performAnalysis, initialState);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
   const { pending } = useFormStatus();
