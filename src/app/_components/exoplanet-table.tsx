@@ -109,7 +109,7 @@ export function ExoplanetTable({ data }: { data: Exoplanet[] }) {
       </div>
       <ScrollArea className="h-[500px] rounded-md border">
         <Table>
-          <TableHeader className="sticky top-0 z-10 bg-card/95 backdrop-blur">
+          <TableHeader className="sticky top-0 z-10 bg-card/95 backdrop-blur-sm">
             <TableRow>
               {columns.map((col) => (
                 <TableHead key={col.key} title={col.tooltip} className="whitespace-nowrap">

@@ -3,9 +3,17 @@ import path from 'path';
 import fs from 'fs';
 import Papa from 'papaparse';
 
+// Helper function to introduce an artificial delay
+function sleep(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 // This function now exclusively runs on the server.
 export async function getExoplanets(): Promise<Exoplanet[]> {
   try {
+    // Artificial delay to demonstrate loading UI
+    await sleep(2000); 
+    
     const csvFilePath = path.join(process.cwd(), 'src', 'lib', 'exoplanet.csv');
     const csvFile = fs.readFileSync(csvFilePath, 'utf8');
 
@@ -21,21 +29,19 @@ export async function getExoplanets(): Promise<Exoplanet[]> {
                   return;
                 }
                 
-                // Filter out any rows that are null or don't have a kepler_name
                 const validData = results.data.filter((row: any) => row && (row.kepler_name || row.kepoi_name));
                 
-                // Map the CSV data to the Exoplanet type
                 const mappedData: Exoplanet[] = validData.map((row: any) => ({
                     pl_name: row.kepler_name || row.kepoi_name,
-                    hostname: 'N/A', // Not available in the provided CSV
-                    disc_year: 0, // Not available in the provided CSV
-                    disc_method: 'Transit', // All Kepler objects are found via Transit method
+                    hostname: 'N/A',
+                    disc_year: 0,
+                    disc_method: 'Transit',
                     pl_orbper: row.koi_period,
                     pl_rade: row.koi_prad,
-                    pl_masse: null, // Not in the provided CSV headers
+                    pl_masse: null,
                     st_teff: row.koi_steff,
                     st_rad: row.koi_srad,
-                    st_mass: null, // Not in the provided CSV headers
+                    st_mass: null,
                     koi_disposition: row.koi_disposition,
                     koi_score: row.koi_score,
                     koi_fpflag_nt: row.koi_fpflag_nt,
