@@ -22,14 +22,14 @@ export async function getExoplanets(): Promise<Exoplanet[]> {
                 }
                 
                 // Filter out any rows that are null or don't have a kepler_name
-                const validData = results.data.filter((row: any) => row && row.kepler_name);
+                const validData = results.data.filter((row: any) => row && (row.kepler_name || row.kepoi_name));
                 
                 // Map the CSV data to the Exoplanet type
                 const mappedData: Exoplanet[] = validData.map((row: any) => ({
-                    pl_name: row.kepler_name,
-                    hostname: row.hostname,
-                    disc_year: row.disc_year,
-                    disc_method: row.discoverymethod, // Assuming this exists from API, might not be in CSV
+                    pl_name: row.kepler_name || row.kepoi_name,
+                    hostname: 'N/A', // Not available in the provided CSV
+                    disc_year: 0, // Not available in the provided CSV
+                    disc_method: 'Transit', // All Kepler objects are found via Transit method
                     pl_orbper: row.koi_period,
                     pl_rade: row.koi_prad,
                     pl_masse: null, // Not in the provided CSV headers
