@@ -6,9 +6,9 @@ const API_URL = 'https://exoplanetarchive.ipac.caltech.edu/TAP/sync';
 const BASE_COLUMNS = 'pl_name,hostname,disc_year,disc_method,pl_orbper,pl_rade,pl_masse,st_teff,st_rad,st_mass';
 
 export async function getExoplanets({ offset = 0, limit = 100 }: { offset?: number, limit?: number } = {}): Promise<Exoplanet[] | null> {
-  // The API doesn't support OFFSET. We can only fetch the top N records.
-  // For pagination, we'll fetch `offset + limit` records and slice them on the client-side.
-  // This is inefficient but a workaround for the API's limitations.
+  // The API doesn't support a direct OFFSET keyword.
+  // A common workaround is to fetch all records up to the desired point (offset + limit) and then slice.
+  // This is inefficient but necessary given the API's constraints.
   const top = offset + limit;
   const query = `select+TOP+${top}+${BASE_COLUMNS}+from+pscomppars+order+by+disc_year+desc,pl_name+asc`;
   const fullUrl = `${API_URL}?query=${query}&format=json`;
@@ -30,8 +30,8 @@ export async function getExoplanets({ offset = 0, limit = 100 }: { offset?: numb
     // Filter out entries without a planet name as they are not useful
     const filteredData = data.filter((p: any) => p.pl_name);
     
-    // Return only the requested slice
-    return filteredData.slice(offset);
+    // Return only the requested slice (the 'page' of data)
+    return filteredData.slice(offset, offset + limit);
 
   } catch (error) {
     console.error('Error fetching exoplanet data:', error);
