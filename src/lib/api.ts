@@ -7,10 +7,9 @@ const BASE_COLUMNS = 'pl_name,hostname,disc_year,disc_method,pl_orbper,pl_rade,p
 
 export async function getExoplanets({ offset = 0, limit = 100 }: { offset?: number, limit?: number } = {}): Promise<Exoplanet[] | null> {
   // The API doesn't support a direct OFFSET keyword.
-  // We fetch all records up to the desired point (offset + limit) and then slice on the client.
-  // This is inefficient but a necessary workaround for this specific API's limitations.
+  // We fetch all records up to the desired point (offset + limit).
   const top = offset + limit;
-  // Let's get more interesting planets by default by filtering for those with mass and radius
+  // Filter for planets with mass and radius for more interesting default results.
   const query = `select+TOP+${top}+${BASE_COLUMNS}+from+pscomppars+where+pl_masse+is+not+null+and+pl_rade+is+not+null+order+by+disc_year+desc,pl_name+asc`;
   const fullUrl = `${API_URL}?query=${query}&format=json`;
 
@@ -23,7 +22,7 @@ export async function getExoplanets({ offset = 0, limit = 100 }: { offset?: numb
       console.error(`Failed to fetch data: ${response.statusText}`);
       const errorText = await response.text();
       console.error(`API Error details: ${errorText}`);
-      // Return null instead of throwing to allow UI to handle it
+      // Return null to allow the UI to handle the error state.
       return null;
     }
 
