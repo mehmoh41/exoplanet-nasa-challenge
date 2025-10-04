@@ -59,8 +59,12 @@ export function ExoplanetTable({ data }: { data: Exoplanet[] }) {
   }, []);
 
   useEffect(() => {
-    setIsSearching(true);
-  }, [filter]);
+    if (filter && filter !== debouncedFilter) {
+      setIsSearching(true);
+    } else {
+      setIsSearching(false);
+    }
+  }, [filter, debouncedFilter]);
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -103,7 +107,7 @@ export function ExoplanetTable({ data }: { data: Exoplanet[] }) {
     const results = sortedData.filter(
       (planet) =>
         planet.pl_name.toLowerCase().includes(debouncedFilter.toLowerCase()) ||
-        (planet.koi_disposition && planet.koi_disposition.toLowerCase().replace(/_/g, ' ').includes(debouncedFilter.toLowerCase()))
+        (planet.koi_disposition && planet.koi_disposition.toLowerCase().replace(/_/, ' ').includes(debouncedFilter.toLowerCase()))
     );
     setIsSearching(false);
     return results;
