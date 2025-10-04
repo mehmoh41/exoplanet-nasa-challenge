@@ -1,32 +1,31 @@
 import type { Exoplanet } from './types';
-
-const API_URL = 'https://exoplanetarchive.ipac.caltech.edu/TAP/sync';
-const BASE_QUERY = 'select+pl_name,hostname,disc_year,disc_method,pl_orbper,pl_rade,pl_masse,st_teff,st_rad,st_mass+from+pscomppars';
+import path from 'path';
+import fs from 'fs';
+import Papa from 'papaparse';
 
 export async function getExoplanets(): Promise<Exoplanet[] | null> {
-  // This query fetches all columns for all planets.
-  const query = `${BASE_QUERY}`;
-  const fullUrl = `${API_URL}?query=${query}&format=json`;
-
   try {
-    const response = await fetch(fullUrl, {
-      next: { revalidate: 3600 * 24 }, // Revalidate once a day
+    const csvFilePath = path.join(process.cwd(), 'src', 'lib', 'exoplanet.csv');
+    const csvFile = fs.readFileSync(csvFilePath, 'utf8');
+
+    return new Promise((resolve, reject) => {
+        Papa.parse<Exoplanet>(csvFile, {
+            header: true,
+            dynamicTyping: true,
+            skipEmptyLines: true,
+            complete: (results) => {
+                // Filter out any rows that are null or don't have a planet name
+                const validData = results.data.filter(row => row && row.pl_name);
+                resolve(validData);
+            },
+            error: (error) => {
+                console.error('Error parsing CSV file:', error);
+                reject(null);
+            }
+        });
     });
-    
-    if (!response.ok) {
-      console.error(`Error fetching data: ${response.status} ${response.statusText}`);
-      return null;
-    }
-    
-    const data = await response.json();
-
-    // The API returns an array of objects, which we can directly cast to our type.
-    const exoplanets: Exoplanet[] = data;
-
-    return exoplanets;
-    
   } catch (error) {
-    console.error('An unexpected error occurred while fetching exoplanet data:', error);
+    console.error('An unexpected error occurred while reading exoplanet data:', error);
     return null;
   }
 }
