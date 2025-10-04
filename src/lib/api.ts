@@ -1,19 +1,32 @@
 import type { Exoplanet } from './types';
-import data from './exoplanet-data.json';
 
+const API_URL = 'https://exoplanetarchive.ipac.caltech.edu/TAP/sync';
+const BASE_QUERY = 'select+pl_name,hostname,disc_year,disc_method,pl_orbper,pl_rade,pl_masse,st_teff,st_rad,st_mass+from+pscomppars';
 
 export async function getExoplanets(): Promise<Exoplanet[] | null> {
+  // This query fetches all columns for all planets.
+  const query = `${BASE_QUERY}`;
+  const fullUrl = `${API_URL}?query=${query}&format=json`;
+
   try {
-    // We are now loading data from a local file to avoid network issues.
-    const exoplanets: Exoplanet[] = data;
+    const response = await fetch(fullUrl, {
+      next: { revalidate: 3600 * 24 }, // Revalidate once a day
+    });
     
-    // Simulate a short delay to allow loading spinners to be seen
-    await new Promise(resolve => setTimeout(resolve, 500));
+    if (!response.ok) {
+      console.error(`Error fetching data: ${response.status} ${response.statusText}`);
+      return null;
+    }
+    
+    const data = await response.json();
+
+    // The API returns an array of objects, which we can directly cast to our type.
+    const exoplanets: Exoplanet[] = data;
 
     return exoplanets;
     
   } catch (error) {
-    console.error('Error reading local exoplanet data:', error);
+    console.error('An unexpected error occurred while fetching exoplanet data:', error);
     return null;
   }
 }

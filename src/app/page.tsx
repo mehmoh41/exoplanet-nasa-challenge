@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import type { Exoplanet } from '@/lib/types';
 import { ExoplanetTable } from './_components/exoplanet-table';
 import { ExoplanetCharts } from './_components/exoplanet-charts';
@@ -14,7 +14,6 @@ import {
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Orbit, Globe, Sparkles, CalendarClock, Terminal } from 'lucide-react';
 import { getExoplanets } from '@/lib/api';
-import { Button } from '@/components/ui/button';
 import Loading from './loading';
 
 export default function ExplorePage() {
@@ -30,11 +29,11 @@ export default function ExplorePage() {
         if (data) {
           setAllPlanets(data);
         } else {
-          setError('Could not load exoplanet data. The data file might be missing or corrupted.');
+          setError('Could not fetch exoplanet data from the NASA Exoplanet Archive. Please try again later.');
         }
       } catch (e) {
         console.error(e);
-        setError('An unexpected error occurred while loading exoplanet data.');
+        setError('An unexpected error occurred while fetching exoplanet data.');
       } finally {
         setIsLoading(false);
       }
@@ -51,7 +50,7 @@ export default function ExplorePage() {
       <div className="container mx-auto py-10">
         <Alert variant="destructive">
           <Terminal className="h-4 w-4" />
-          <AlertTitle>Error Loading Data</AlertTitle>
+          <AlertTitle>Error Fetching Data</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       </div>
@@ -92,7 +91,7 @@ export default function ExplorePage() {
             <div className="text-2xl font-bold">
               {totalPlanets.toLocaleString()}
             </div>
-            <p className="text-xs text-muted-foreground">planets in local data</p>
+            <p className="text-xs text-muted-foreground">planets found</p>
           </CardContent>
         </Card>
         <Card>
@@ -140,7 +139,7 @@ export default function ExplorePage() {
           <CardHeader>
             <CardTitle>Exoplanet Database</CardTitle>
             <CardDescription>
-              Displaying {allPlanets.length} exoplanets from local data. Click headers to sort.
+              Displaying {allPlanets.length} exoplanets. Click headers to sort.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">

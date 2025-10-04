@@ -21,11 +21,11 @@ export default function ComparePage() {
         if (data) {
           setPlanets(data);
         } else {
-          setError('Could not load exoplanet data. The data file might be missing or corrupted.');
+          setError('Could not fetch exoplanet data from the NASA Exoplanet Archive. Please try again later.');
         }
       } catch (e) {
         console.error(e);
-        setError('An unexpected error occurred while loading exoplanet data.');
+        setError('An unexpected error occurred while fetching exoplanet data.');
       } finally {
         setIsLoading(false);
       }
@@ -51,7 +51,7 @@ export default function ComparePage() {
       {error ? (
         <Alert variant="destructive">
           <Terminal className="h-4 w-4" />
-          <AlertTitle>Error Loading Data</AlertTitle>
+          <AlertTitle>Error Fetching Data</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       ) : (
