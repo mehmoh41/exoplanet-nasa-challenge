@@ -7,6 +7,7 @@ const BASE_COLUMNS = 'pl_name,hostname,disc_year,disc_method,pl_orbper,pl_rade,p
 
 export async function getExoplanets(): Promise<Exoplanet[] | null> {
   // Query to fetch all confirmed exoplanets with essential data, sorted by discovery year.
+  // Fetches all data and lets the client handle pagination.
   const query = `select+${BASE_COLUMNS}+from+pscomppars+where+default_flag=1+and+pl_masse+is+not+null+and+pl_rade+is+not+null+order+by+disc_year+desc,pl_name+asc`;
   const fullUrl = `${API_URL}?query=${query}&format=json`;
 

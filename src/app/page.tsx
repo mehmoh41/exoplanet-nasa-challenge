@@ -12,7 +12,7 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Orbit, Globe, Sparkles, CalendarClock, Terminal, Loader2 } from 'lucide-react';
+import { Orbit, Globe, Sparkles, CalendarClock, Terminal } from 'lucide-react';
 import { getExoplanets } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import Loading from './loading';
