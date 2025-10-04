@@ -1,7 +1,9 @@
 'use server';
 
 import { analyzeExoplanetData } from '@/ai/flows/analyze-exoplanet-data';
+import { processLightCurve } from '@/ai/flows/process-light-curve';
 import { z } from 'zod';
+import Papa from 'papaparse';
 
 const FormSchema = z.object({
   dataFile: z
@@ -11,13 +13,15 @@ const FormSchema = z.object({
       (file) => file?.type === 'text/csv' || file?.type === 'application/json',
       'Only .csv and .json files are accepted.'
     ),
+  analysisType: z.enum(['general', 'light_curve']),
 });
 
 export type AnalysisState = {
   message: string;
-  results?: string;
+  results?: any; // Can be string for general or object for light curve
   errors?: {
     dataFile?: string[];
+    analysisType?: string[];
   };
 };
 
@@ -27,6 +31,7 @@ export async function performAnalysis(
 ): Promise<AnalysisState> {
   const validatedFields = FormSchema.safeParse({
     dataFile: formData.get('dataFile'),
+    analysisType: formData.get('analysisType'),
   });
 
   if (!validatedFields.success) {
@@ -36,20 +41,38 @@ export async function performAnalysis(
     };
   }
 
-  const file = validatedFields.data.dataFile as File;
+  const { dataFile, analysisType } = validatedFields.data;
+  const file = dataFile as File;
 
   try {
     const fileContent = await file.text();
 
-    const result = await analyzeExoplanetData({ data: fileContent });
+    if (analysisType === 'light_curve') {
+       // For light curve, ensure we have time and flux columns
+       const parsedCsv = Papa.parse(fileContent, { header: true, skipEmptyLines: true });
+       const fields = parsedCsv.meta.fields;
+       if (!fields || !fields.includes('time') || !fields.includes('flux')) {
+         return { message: 'Light curve analysis requires a CSV with "time" and "flux" columns.' };
+       }
 
-    if (!result.analysisResults) {
+      const result = await processLightCurve({ lightCurveData: fileContent });
+      if (!result.analysisSummary) {
         return { message: 'AI analysis failed to produce results. Please try a different file.' };
+      }
+      return { message: 'Analysis complete.', results: result };
+
+    } else {
+      // General Analysis
+      const result = await analyzeExoplanetData({ data: fileContent });
+      if (!result.analysisResults) {
+          return { message: 'AI analysis failed to produce results. Please try a different file.' };
+      }
+      return { message: 'Analysis complete.', results: result.analysisResults };
     }
 
-    return { message: 'Analysis complete.', results: result.analysisResults };
   } catch (error) {
     console.error(error);
-    return { message: 'An error occurred during analysis. Please check the file and try again.' };
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return { message: `An error occurred during analysis: ${errorMessage}. Please check the file and try again.` };
   }
 }

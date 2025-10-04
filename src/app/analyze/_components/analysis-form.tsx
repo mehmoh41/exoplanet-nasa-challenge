@@ -1,15 +1,15 @@
 'use client';
 
-import { useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useActionState, useFormStatus } from 'react-dom';
 import { performAnalysis, type AnalysisState } from '@/lib/actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Bot, FileText, Loader2, Sparkles } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Bot, FileText, Loader2, Sparkles, Wand } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useRef } from 'react';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -29,6 +29,72 @@ function SubmitButton() {
     </Button>
   );
 }
+
+function AnalysisResults({ state, pending }: { state: AnalysisState, pending: boolean }) {
+    if (pending) {
+        return (
+            <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground h-48">
+                <Loader2 className="h-8 w-8 animate-spin text-accent" />
+                <p>AI is processing the data...</p>
+            </div>
+        )
+    }
+
+    if (!state.results) {
+        return (
+            <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground h-48">
+                <p>Analysis results will appear here.</p>
+            </div>
+        );
+    }
+    
+    // Check if results is a string (general analysis) or object (light curve)
+    if (typeof state.results === 'string') {
+        return (
+            <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap rounded-md bg-muted p-4 text-sm">
+                {state.results}
+            </div>
+        );
+    }
+
+    if (typeof state.results === 'object' && state.results.analysisSummary) {
+        return (
+          <div className="space-y-4">
+             <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap rounded-md bg-muted p-4 text-sm">
+                <h3 className="font-headline text-base">Analysis Summary</h3>
+                <p>{state.results.analysisSummary}</p>
+            </div>
+             <Card>
+                <CardHeader>
+                    <CardTitle className="text-lg">Processed Data</CardTitle>
+                    <CardDescription>{state.results.processedData.length} data points processed.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-xs text-muted-foreground">Showing first 5 rows.</p>
+                     <pre className="mt-2 text-xs overflow-auto rounded-md bg-muted p-4">
+                        {JSON.stringify(state.results.processedData.slice(0,5), null, 2)}
+                    </pre>
+                </CardContent>
+             </Card>
+             <Card>
+                <CardHeader>
+                    <CardTitle className="text-lg">Time Windows</CardTitle>
+                    <CardDescription>{state.results.timeWindows.length} uniform segments created.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                     <p className="text-xs text-muted-foreground">Showing first 2 windows.</p>
+                     <pre className="mt-2 text-xs overflow-auto rounded-md bg-muted p-4">
+                        {JSON.stringify(state.results.timeWindows.slice(0,2), null, 2)}
+                    </pre>
+                </CardContent>
+             </Card>
+          </div>
+        )
+    }
+
+    return null;
+}
+
 
 export function AnalysisForm() {
   const initialState: AnalysisState = { message: '' };
@@ -54,6 +120,26 @@ export function AnalysisForm() {
     <div className="grid gap-8 md:grid-cols-2">
       <form action={formAction} ref={formRef} className="space-y-6">
         <div className="space-y-2">
+            <Label>Analysis Type</Label>
+            <RadioGroup name="analysisType" defaultValue="general" className="grid grid-cols-2 gap-4">
+                 <div>
+                    <RadioGroupItem value="general" id="general" className="peer sr-only" />
+                    <Label htmlFor="general" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                        <Bot className="mb-3 h-6 w-6" />
+                        General Analysis
+                    </Label>
+                </div>
+                 <div>
+                    <RadioGroupItem value="light_curve" id="light_curve" className="peer sr-only" />
+                    <Label htmlFor="light_curve" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                        <Wand className="mb-3 h-6 w-6" />
+                        Light Curve
+                    </Label>
+                </div>
+            </RadioGroup>
+        </div>
+
+        <div className="space-y-2">
           <Label htmlFor="dataFile">Exoplanet Data File</Label>
           <div className="relative">
             <Input id="dataFile" name="dataFile" type="file" required accept=".csv,.json" className="pl-10" />
@@ -75,22 +161,7 @@ export function AnalysisForm() {
                 </CardTitle>
             </CardHeader>
             <CardContent>
-                {pending && (
-                     <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground h-48">
-                        <Loader2 className="h-8 w-8 animate-spin text-accent" />
-                        <p>AI is processing the data...</p>
-                     </div>
-                )}
-                {!pending && state.results && (
-                    <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap rounded-md bg-muted p-4 text-sm">
-                        {state.results}
-                    </div>
-                )}
-                {!pending && !state.results && (
-                     <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground h-48">
-                        <p>Analysis results will appear here.</p>
-                     </div>
-                )}
+                <AnalysisResults state={state} pending={pending} />
             </CardContent>
         </Card>
       </div>
