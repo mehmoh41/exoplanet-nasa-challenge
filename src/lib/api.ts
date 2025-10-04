@@ -10,7 +10,8 @@ export async function getExoplanets({ offset = 0, limit = 100 }: { offset?: numb
   // We fetch all records up to the desired point (offset + limit) and then slice on the client.
   // This is inefficient but a necessary workaround for this specific API's limitations.
   const top = offset + limit;
-  const query = `select+TOP+${top}+${BASE_COLUMNS}+from+pscomppars+order+by+disc_year+desc,pl_name+asc`;
+  // Let's get more interesting planets by default by filtering for those with mass and radius
+  const query = `select+TOP+${top}+${BASE_COLUMNS}+from+pscomppars+where+pl_masse+is+not+null+and+pl_rade+is+not+null+order+by+disc_year+desc,pl_name+asc`;
   const fullUrl = `${API_URL}?query=${query}&format=json`;
 
   try {
