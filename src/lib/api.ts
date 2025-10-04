@@ -5,9 +5,9 @@ const API_URL = 'https://exoplanetarchive.ipac.caltech.edu/TAP/sync';
 // Base columns for the query
 const BASE_COLUMNS = 'pl_name,hostname,disc_year,disc_method,pl_orbper,pl_rade,pl_masse,st_teff,st_rad,st_mass';
 
-export async function getExoplanets({ offset = 0, limit = 300 }: { offset?: number, limit?: number } = {}): Promise<Exoplanet[] | null> {
-  // A simplified query to fetch the most recent discoveries.
-  const query = `select+TOP+${limit}+${BASE_COLUMNS}+from+pscomppars+where+pl_masse+is+not+null+and+pl_rade+is+not+null+order+by+disc_year+desc,pl_name+asc`;
+export async function getExoplanets(): Promise<Exoplanet[] | null> {
+  // Query to fetch all confirmed exoplanets with essential data, sorted by discovery year.
+  const query = `select+${BASE_COLUMNS}+from+pscomppars+where+default_flag=1+and+pl_masse+is+not+null+and+pl_rade+is+not+null+order+by+disc_year+desc,pl_name+asc`;
   const fullUrl = `${API_URL}?query=${query}&format=json`;
 
   try {
@@ -16,8 +16,7 @@ export async function getExoplanets({ offset = 0, limit = 300 }: { offset?: numb
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`API Error: ${response.statusText}`, errorText);
+      console.error(`API Error: ${response.statusText}`);
       return null;
     }
 
@@ -26,12 +25,7 @@ export async function getExoplanets({ offset = 0, limit = 300 }: { offset?: numb
     // Filter out entries without a planet name as they are not useful
     const filteredData = data.filter((p: any) => p.pl_name);
     
-    // The simplified query doesn't support offset, so we slice.
-    if (offset > 0 && offset >= filteredData.length) {
-      return [];
-    }
-    
-    return filteredData.slice(offset, offset + limit);
+    return filteredData;
 
   } catch (error) {
     console.error('Network error while fetching exoplanet data:', error);

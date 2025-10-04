@@ -4,30 +4,22 @@ import { useState, useEffect } from 'react';
 import type { Exoplanet } from '@/lib/types';
 import { ComparisonTool } from './_components/comparison-tool';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Terminal, Loader2 } from 'lucide-react';
+import { Terminal } from 'lucide-react';
 import { getExoplanets } from '@/lib/api';
 import CompareLoading from './loading';
-import { Button } from '@/components/ui/button';
 
 export default function ComparePage() {
   const [planets, setPlanets] = useState<Exoplanet[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isAppending, setIsAppending] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-
-  const CHUNK_SIZE = 300;
 
   useEffect(() => {
-    async function loadInitialData() {
+    async function loadData() {
       try {
         setIsLoading(true);
-        const initialData = await getExoplanets({ limit: CHUNK_SIZE });
-        if (initialData) {
-          setPlanets(initialData);
-          if (initialData.length < CHUNK_SIZE) {
-            setHasMore(false);
-          }
+        const data = await getExoplanets();
+        if (data) {
+          setPlanets(data);
         } else {
           setError('Could not fetch exoplanet data for comparison.');
         }
@@ -38,34 +30,8 @@ export default function ComparePage() {
         setIsLoading(false);
       }
     }
-    loadInitialData();
+    loadData();
   }, []);
-
-  const handleLoadMore = async () => {
-    if (!hasMore || isAppending) return;
-
-    setIsAppending(true);
-    try {
-      const response = await fetch('/api/exoplanets', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ offset: planets.length, limit: CHUNK_SIZE }),
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch more planets');
-      }
-      const newPlanets: Exoplanet[] = await response.json();
-      setPlanets((prev) => [...prev, ...newPlanets]);
-      if (newPlanets.length < CHUNK_SIZE) {
-        setHasMore(false);
-      }
-    } catch (e) {
-      console.error(e);
-      // Optionally, set an error state to show a toast
-    } finally {
-      setIsAppending(false);
-    }
-  };
 
   if (isLoading) {
     return <CompareLoading />;
@@ -89,12 +55,7 @@ export default function ComparePage() {
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       ) : (
-        <ComparisonTool 
-            planets={planets}
-            onLoadMore={handleLoadMore}
-            hasMore={hasMore}
-            isAppending={isAppending}
-        />
+        <ComparisonTool planets={planets} />
       )}
     </div>
   );

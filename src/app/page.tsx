@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import type { Exoplanet } from '@/lib/types';
 import { ExoplanetTable } from './_components/exoplanet-table';
 import { ExoplanetCharts } from './_components/exoplanet-charts';
@@ -17,29 +17,23 @@ import { getExoplanets } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import Loading from './loading';
 
+const PAGE_SIZE = 300;
+
 export default function ExplorePage() {
-  const [planets, setPlanets] = useState<Exoplanet[]>([]);
-  const [initialPlanets, setInitialPlanets] = useState<Exoplanet[]>([]);
+  const [allPlanets, setAllPlanets] = useState<Exoplanet[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isAppending, setIsAppending] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  
-  const CHUNK_SIZE = 300;
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
-    async function loadInitialData() {
+    async function loadData() {
       try {
         setIsLoading(true);
-        const initialData = await getExoplanets({ limit: CHUNK_SIZE });
-        if (initialData) {
-            setPlanets(initialData);
-            setInitialPlanets(initialData);
-            if (initialData.length < CHUNK_SIZE) {
-                setHasMore(false);
-            }
+        const data = await getExoplanets();
+        if (data) {
+          setAllPlanets(data);
         } else {
-            setError('Could not fetch exoplanet data from the NASA Exoplanet Archive. Please try again later.');
+          setError('Could not fetch exoplanet data from the NASA Exoplanet Archive. Please try again later.');
         }
       } catch (e) {
         console.error(e);
@@ -48,35 +42,18 @@ export default function ExplorePage() {
         setIsLoading(false);
       }
     }
-    loadInitialData();
+    loadData();
   }, []);
 
-  const handleLoadMore = async () => {
-    if (!hasMore || isAppending) return;
+  const paginatedPlanets = useMemo(() => {
+    return allPlanets.slice(0, page * PAGE_SIZE);
+  }, [allPlanets, page]);
+  
+  const hasMore = paginatedPlanets.length < allPlanets.length;
 
-    setIsAppending(true);
-    try {
-        const response = await fetch('/api/exoplanets', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ offset: planets.length, limit: CHUNK_SIZE })
-        });
-        if (!response.ok) {
-            throw new Error('Failed to fetch more planets');
-        }
-        const newPlanets: Exoplanet[] = await response.json();
-        setPlanets(prev => [...prev, ...newPlanets]);
-        if (newPlanets.length < CHUNK_SIZE) {
-            setHasMore(false);
-        }
-    } catch (e) {
-        console.error(e);
-        // Optionally, set an error state to show a toast
-    } finally {
-        setIsAppending(false);
-    }
-  }
-
+  const handleLoadMore = () => {
+      setPage(prev => prev + 1);
+  };
 
   if (isLoading) {
     return <Loading />;
@@ -88,23 +65,21 @@ export default function ExplorePage() {
         <Alert variant="destructive">
           <Terminal className="h-4 w-4" />
           <AlertTitle>Error Fetching Data</AlertTitle>
-          <AlertDescription>
-            {error}
-          </AlertDescription>
+          <AlertDescription>{error}</AlertDescription>
         </Alert>
       </div>
     );
   }
 
-  const totalPlanets = initialPlanets.length;
-  const terrestrialPlanets = initialPlanets.filter(
+  const totalPlanets = allPlanets.length;
+  const terrestrialPlanets = allPlanets.filter(
     (p) => p.pl_rade && p.pl_rade < 2
   ).length;
-  const gasGiants = initialPlanets.filter(
+  const gasGiants = allPlanets.filter(
     (p) => p.pl_masse && p.pl_masse > 10
   ).length;
   const latestDiscoveryYear = Math.max(
-    ...initialPlanets.map((p) => p.disc_year).filter(y => y)
+    ...allPlanets.map((p) => p.disc_year).filter(y => y)
   );
 
   return (
@@ -122,15 +97,15 @@ export default function ExplorePage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Total Displayed
+              Total Confirmed
             </CardTitle>
             <Orbit className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {planets.length.toLocaleString()}
+              {totalPlanets.toLocaleString()}
             </div>
-            <p className="text-xs text-muted-foreground">planets shown</p>
+            <p className="text-xs text-muted-foreground">planets discovered</p>
           </CardContent>
         </Card>
         <Card>
@@ -144,7 +119,7 @@ export default function ExplorePage() {
             <div className="text-2xl font-bold">
               {terrestrialPlanets.toLocaleString()}
             </div>
-            <p className="text-xs text-muted-foreground">in first ~300 entries</p>
+            <p className="text-xs text-muted-foreground">planets with radius &lt; 2 R⊕</p>
           </CardContent>
         </Card>
         <Card>
@@ -156,7 +131,7 @@ export default function ExplorePage() {
             <div className="text-2xl font-bold">
               {gasGiants.toLocaleString()}
             </div>
-            <p className="text-xs text-muted-foreground">in first ~300 entries</p>
+            <p className="text-xs text-muted-foreground">planets with mass &gt; 10 M⊕</p>
           </CardContent>
         </Card>
         <Card>
@@ -168,7 +143,7 @@ export default function ExplorePage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{latestDiscoveryYear}</div>
-            <p className="text-xs text-muted-foreground">most recent in first ~300</p>
+            <p className="text-xs text-muted-foreground">most recent discovery year</p>
           </CardContent>
         </Card>
       </div>
@@ -178,20 +153,15 @@ export default function ExplorePage() {
           <CardHeader>
             <CardTitle>Exoplanet Database</CardTitle>
             <CardDescription>
-              Browse confirmed exoplanets. Click headers to sort.
+              Displaying {paginatedPlanets.length} of {allPlanets.length} exoplanets. Click headers to sort.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
-            <ExoplanetTable data={planets} />
+            <ExoplanetTable data={paginatedPlanets} />
             {hasMore && (
                 <div className="flex justify-center">
-                    <Button onClick={handleLoadMore} disabled={isAppending}>
-                        {isAppending ? (
-                            <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Loading...
-                            </>
-                        ) : "Load More"}
+                    <Button onClick={handleLoadMore}>
+                        Load More
                     </Button>
                 </div>
             )}
@@ -203,7 +173,7 @@ export default function ExplorePage() {
             <CardDescription>Relationships in exoplanet data.</CardDescription>
           </CardHeader>
           <CardContent>
-            <ExoplanetCharts data={planets} />
+            <ExoplanetCharts data={allPlanets} />
           </CardContent>
         </Card>
       </div>
