@@ -3,24 +3,10 @@
  * @fileOverview Analyzes exoplanet data using AI to provide insights.
  *
  * - analyzeExoplanetData - A function that handles the analysis of exoplanet data.
- * - AnalyzeExoplanetDataInput - The input type for the analyzeExoplanetData function.
- * - AnalyzeExoplanetDataOutput - The return type for the analyzeExoplanetData function.
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
-
-const AnalyzeExoplanetDataInputSchema = z.object({
-  data: z
-    .string()
-    .describe('Exoplanet data in CSV or JSON format.'),
-});
-export type AnalyzeExoplanetDataInput = z.infer<typeof AnalyzeExoplanetDataInputSchema>;
-
-const AnalyzeExoplanetDataOutputSchema = z.object({
-  analysisResults: z.string().describe('AI analysis results of the exoplanet data.'),
-});
-export type AnalyzeExoplanetDataOutput = z.infer<typeof AnalyzeExoplanetDataOutputSchema>;
+import { AnalyzeExoplanetDataInputSchema, AnalyzeExoplanetDataOutputSchema, type AnalyzeExoplanetDataInput, type AnalyzeExoplanetDataOutput } from '@/ai/schemas';
 
 export async function analyzeExoplanetData(input: AnalyzeExoplanetDataInput): Promise<AnalyzeExoplanetDataOutput> {
   return analyzeExoplanetDataFlow(input);

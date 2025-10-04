@@ -3,34 +3,10 @@
  * @fileOverview A flow for processing exoplanet light curve data.
  *
  * - processLightCurve - A function that handles cleaning, normalizing, and segmenting light curve data.
- * - ProcessLightCurveInput - The input type for the processLightCurve function.
- * - ProcessLightCurveOutput - The return type for the processLightCurve function.
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
-
-export const ProcessLightCurveInputSchema = z.object({
-  lightCurveData: z.string().describe('Light curve data as a CSV string with "time" and "flux" columns.'),
-});
-export type ProcessLightCurveInput = z.infer<typeof ProcessLightCurveInputSchema>;
-
-export const ProcessLightCurveOutputSchema = z.object({
-  analysisSummary: z.string().describe('A summary of the processing and analysis performed on the light curve.'),
-  processedData: z.array(z.object({
-    time: z.number(),
-    original_flux: z.number(),
-    normalized_flux: z.number(),
-    is_outlier: z.boolean(),
-  })).describe('The processed light curve data points.'),
-  timeWindows: z.array(z.object({
-    startTime: z.number(),
-    endTime: z.number(),
-    segment: z.string().describe('The data points within this time window as a string or array.'),
-  })).describe('The data segmented into uniform time windows.'),
-});
-export type ProcessLightCurveOutput = z.infer<typeof ProcessLightCurveOutputSchema>;
-
+import { ProcessLightCurveInputSchema, ProcessLightCurveOutputSchema, type ProcessLightCurveInput, type ProcessLightCurveOutput } from '@/ai/schemas';
 
 export async function processLightCurve(input: ProcessLightCurveInput): Promise<ProcessLightCurveOutput> {
   return processLightCurveFlow(input);
