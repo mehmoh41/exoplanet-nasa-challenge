@@ -1,3 +1,22 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "planet-1",
+      "description": "An artist's impression of a rocky exoplanet.",
+      "imageUrl": "https://images.unsplash.com/photo-1723067553070-e51e0a7fb469?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxleG9wbGFuZXQlMjBzcGFjZXxlbnwwfHx8fDE3NTk1NTYyMzN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "exoplanet space"
+    },
+    {
+      "id": "planet-2",
+      "description": "An artist's impression of a gas giant exoplanet.",
+      "imageUrl": "https://images.unsplash.com/photo-1710675122269-f3057a3e8421?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxnYXMtZ2lhbnQlMjBqdXBpdGVyfGVufDB8fHx8MTc1OTU4MTAwNnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "gas-giant jupiter"
+    },
+    {
+      "id": "nasa-logo",
+      "description": "The NASA logo.",
+      "imageUrl": "https://images.unsplash.com/photo-1636614484105-6b199a1fbdca?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxuYXNhJTIwbG9nb3xlbnwwfHx8fDE3NTk1ODEwMDZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "nasa logo"
+    }
+  ]
 }
