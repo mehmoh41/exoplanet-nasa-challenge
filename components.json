@@ -1,6 +1,4 @@
 
-// Configuration file for shadcn/ui setup in ExoAI Explorer 🚀
-// Defines UI style system, Tailwind integration, and project-wide aliases.
 
 {
   "$schema": "https://ui.shadcn.com/schema.json",
