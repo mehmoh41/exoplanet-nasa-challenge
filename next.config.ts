@@ -1,5 +1,5 @@
 import type {NextConfig} from 'next';
-
+//config file of next js 
 const nextConfig: NextConfig = {
   /* config options here */
   typescript: {
