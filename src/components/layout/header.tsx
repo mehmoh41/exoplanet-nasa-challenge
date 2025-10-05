@@ -30,7 +30,7 @@ export function Header() {
             key={item.href}
             href={item.href}
             className={cn(
-              'transition-colors hover:text-foreground',
+              'transition-colors hover:text-primary',
               pathname === item.href
                 ? 'text-foreground'
                 : 'text-muted-foreground'
@@ -62,7 +62,7 @@ export function Header() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  'hover:text-foreground',
+                  'hover:text-primary',
                    pathname === item.href ? 'text-foreground' : 'text-muted-foreground'
                 )}
               >
