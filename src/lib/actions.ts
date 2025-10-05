@@ -18,7 +18,8 @@ const FormSchema = z.object({
 
 export type AnalysisState = {
   message: string;
-  results?: any; // Can be string for general or object for light curve
+  results?: any;
+  analysisType?: 'general' | 'candidate_analysis';
   errors?: {
     dataFile?: string[];
     analysisType?: string[];
@@ -44,6 +45,7 @@ export async function performAnalysis(
     return {
       message: 'Invalid form data.',
       errors: validatedFields.error.flatten().fieldErrors,
+      analysisType: (formData.get('analysisType') as 'general' | 'candidate_analysis') || 'general',
     };
   }
 
@@ -56,36 +58,36 @@ export async function performAnalysis(
     const fields = parsedCsv.meta.fields;
 
     if (!fields) {
-        return { message: 'Could not parse headers from the CSV file.' };
+        return { message: 'Could not parse headers from the CSV file.', analysisType };
     }
 
     if (analysisType === 'candidate_analysis') {
       const missingColumns = REQUIRED_CANDIDATE_COLUMNS.filter(col => !fields.includes(col));
       if (missingColumns.length > 0) {
-        return { message: `Missing required columns for candidate analysis: ${missingColumns.join(', ')}` };
+        return { message: `Missing required columns for candidate analysis: ${missingColumns.join(', ')}`, analysisType };
       }
       if (!parsedCsv.data || parsedCsv.data.length === 0) {
-        return { message: 'CSV file contains no data rows to analyze.' };
+        return { message: 'CSV file contains no data rows to analyze.', analysisType };
       }
       // We will only analyze the first row for this feature
       const firstRow = parsedCsv.data[0] as any;
       const result = await analyzePlanetCandidate(firstRow);
       if (!result.predicted_disposition) {
-         return { message: 'AI analysis failed to produce a classification. Please try a different file.' };
+         return { message: 'AI analysis failed to produce a classification. Please try a different file.', analysisType };
       }
-      return { message: 'Analysis complete.', results: result };
+      return { message: 'Analysis complete.', results: result, analysisType };
 
     } else { // General Analysis
       const result = await analyzeExoplanetData({ data: fileContent });
       if (!result) {
-          return { message: 'AI analysis failed to produce results. Please try a different file.' };
+          return { message: 'AI analysis failed to produce results. Please try a different file.', analysisType };
       }
-      return { message: 'Analysis complete.', results: result };
+      return { message: 'Analysis complete.', results: result, analysisType };
     }
 
   } catch (error) {
     console.error(error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
-    return { message: `An error occurred during analysis: ${errorMessage}. Please check the file and try again.` };
+    return { message: `An error occurred during analysis: ${errorMessage}. Please check the file and try again.`, analysisType };
   }
 }
