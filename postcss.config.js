@@ -5,4 +5,7 @@ module.exports = {
     tailwindcss: {},
     autoprefixer: {},
   },
+  future: {
+    removeDeprecated: process.env.NODE_ENV === 'production',
+  },
 }
