@@ -76,7 +76,7 @@ export function Header() {
       <div className="flex w-full items-center justify-end gap-4 md:ml-auto md:gap-2 lg:gap-4">
         <Button variant="ghost" size="icon" asChild>
           <a
-            href="https://github.com/firebase/studio-templates/tree/main/exo-ai-explorer"
+            href="https://github.com/mehmoh41/exoplanet-nasa-challenge"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="GitHub Repository"
