@@ -10,8 +10,6 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 const menuItems = [
   { href: '/', label: 'Explore' },
   { href: '/analyze', label: 'Analyze with AI' },
-  { href: '/compare', label: 'Compare Planets' },
-  { href: '/about', label: 'About' },
 ];
 
 export function Header() {
