@@ -1,7 +1,6 @@
 'use server';
 
 import { analyzeExoplanetData } from '@/ai/flows/analyze-exoplanet-data';
-import { processLightCurve } from '@/ai/flows/process-light-curve';
 import { analyzePlanetCandidate } from '@/ai/flows/planet-candidate-analysis';
 import { z } from 'zod';
 import Papa from 'papaparse';
@@ -14,7 +13,7 @@ const FormSchema = z.object({
       (file) => file?.type === 'text/csv' || file?.type === 'application/json',
       'Only .csv and .json files are accepted.'
     ),
-  analysisType: z.enum(['general', 'light_curve', 'candidate_analysis']),
+  analysisType: z.enum(['general', 'candidate_analysis']),
 });
 
 export type AnalysisState = {
@@ -60,17 +59,7 @@ export async function performAnalysis(
         return { message: 'Could not parse headers from the CSV file.' };
     }
 
-    if (analysisType === 'light_curve') {
-       if (!fields.includes('time') || !fields.includes('flux')) {
-         return { message: 'Light curve analysis requires a CSV with "time" and "flux" columns.' };
-       }
-      const result = await processLightCurve({ lightCurveData: fileContent });
-      if (!result.analysisSummary) {
-        return { message: 'AI analysis failed to produce results. Please try a different file.' };
-      }
-      return { message: 'Analysis complete.', results: result };
-
-    } else if (analysisType === 'candidate_analysis') {
+    if (analysisType === 'candidate_analysis') {
       const missingColumns = REQUIRED_CANDIDATE_COLUMNS.filter(col => !fields.includes(col));
       if (missingColumns.length > 0) {
         return { message: `Missing required columns for candidate analysis: ${missingColumns.join(', ')}` };
