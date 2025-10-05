@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Rocket, Github, Menu } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 
 const menuItems = [
   { href: '/', label: 'Explore' },
@@ -48,13 +48,14 @@ export function Header() {
           </Button>
         </SheetTrigger>
         <SheetContent side="left">
+           <SheetTitle className="sr-only">Main Menu</SheetTitle>
           <nav className="grid gap-6 text-lg font-medium">
             <Link
               href="/"
               className="flex items-center gap-2 text-lg font-semibold"
             >
               <Rocket className="h-6 w-6 text-primary" />
-              <span className="sr-only">ExoAI Explorer</span>
+              <span className="font-headline">ExoAI Explorer</span>
             </Link>
             {menuItems.map((item) => (
               <Link
