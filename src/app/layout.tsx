@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { cn } from '@/lib/utils';
-import { SidebarLayout } from '@/components/layout/sidebar-layout';
+import { Header } from '@/components/layout/header';
 import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
@@ -22,7 +22,12 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
       </head>
       <body className={cn('font-body antialiased')}>
-        <SidebarLayout>{children}</SidebarLayout>
+        <div className="flex min-h-screen w-full flex-col">
+          <Header />
+          <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+            {children}
+          </main>
+        </div>
         <Toaster />
       </body>
     </html>
