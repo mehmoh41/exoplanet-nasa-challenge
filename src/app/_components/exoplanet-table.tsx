@@ -143,7 +143,7 @@ export function ExoplanetTable({ data }: { data: Exoplanet[] }) {
                   <Button
                     variant="ghost"
                     onClick={() => handleSort(col.key)}
-                    className={cn(index === 0 ? "-ml-4" : "mx-auto")}
+                    className={cn("mx-auto hover:text-primary", index === 0 && "ml-0")}
                   >
                     {col.label}
                     {renderSortIcon(col.key)}
