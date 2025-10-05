@@ -22,7 +22,6 @@ export function Header() {
           href="/"
           className="flex items-center gap-2 text-lg font-semibold md:text-base"
         >
-          <Rocket className="h-6 w-6 text-primary" />
           <span className="font-headline">ExoAI Explorer</span>
         </Link>
         {menuItems.map((item) => (
