@@ -137,13 +137,13 @@ export function ExoplanetTable({ data }: { data: Exoplanet[] }) {
       <ScrollArea className="h-[500px] rounded-md border">
         <Table>
           <TableHeader className="sticky top-0 z-10 bg-card/95 backdrop-blur-sm">
-            <TableRow>
-              {columns.map((col) => (
-                <TableHead key={col.key} title={col.tooltip} className="whitespace-nowrap">
+             <TableRow>
+              {columns.map((col, index) => (
+                <TableHead key={col.key} title={col.tooltip} className={cn("whitespace-nowrap", index > 0 && "text-center")}>
                   <Button
                     variant="ghost"
                     onClick={() => handleSort(col.key)}
-                    className="-ml-4"
+                    className={cn(index === 0 ? "-ml-4" : "mx-auto")}
                   >
                     {col.label}
                     {renderSortIcon(col.key)}
@@ -168,10 +168,10 @@ export function ExoplanetTable({ data }: { data: Exoplanet[] }) {
                 <TableRow key={planet.pl_name}>
                   <TableCell className="font-medium">{planet.pl_name}</TableCell>
                   <TableCell><DispositionBadge disposition={planet.koi_disposition} /></TableCell>
-                  <TableCell className="text-right">{planet.koi_score?.toFixed(3) ?? 'N/A'}</TableCell>
-                  <TableCell className="text-right">{planet.pl_orbper?.toFixed(2) ?? 'N/A'}</TableCell>
-                  <TableCell className="text-right">{planet.pl_rade?.toFixed(2) ?? 'N/A'}</TableCell>
-                  <TableCell className="text-right">{planet.st_teff?.toLocaleString() ?? 'N/A'}</TableCell>
+                  <TableCell className="text-center">{planet.koi_score?.toFixed(3) ?? 'N/A'}</TableCell>
+                  <TableCell className="text-center">{planet.pl_orbper?.toFixed(2) ?? 'N/A'}</TableCell>
+                  <TableCell className="text-center">{planet.pl_rade?.toFixed(2) ?? 'N/A'}</TableCell>
+                  <TableCell className="text-center">{planet.st_teff?.toLocaleString() ?? 'N/A'}</TableCell>
                 </TableRow>
               ))
             ) : (
