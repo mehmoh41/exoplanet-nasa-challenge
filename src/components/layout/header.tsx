@@ -74,8 +74,9 @@ export function Header() {
         </SheetContent>
       </Sheet>
       <div className="flex w-full items-center justify-end gap-4 md:ml-auto md:gap-2 lg:gap-4">
-        <Button variant="ghost" size="icon" asChild>
+       
           <a
+            class="h-7 h-7 bg-transparent hover:bg-blue-500 p-4"
             href="https://github.com/mehmoh41/exoplanet-nasa-challenge"
             target="_blank"
             rel="noopener noreferrer"
@@ -84,7 +85,7 @@ export function Header() {
             <Github className="h-5 w-5" />
             <span className="sr-only">GitHub Repository</span>
           </a>
-        </Button>
+      
       </div>
     </header>
   );
