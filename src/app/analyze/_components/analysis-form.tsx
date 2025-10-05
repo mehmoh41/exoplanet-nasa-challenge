@@ -1,7 +1,6 @@
 'use client';
 
-import { useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useActionState, useFormStatus } from 'react';
 import { performAnalysis, type AnalysisState } from '@/lib/actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -126,7 +125,63 @@ export function AnalysisForm() {
   const [state, formAction] = useActionState(performAnalysis, initialState);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
-  const { pending } = useFormStatus();
+
+  // We need to wrap the form in its own component to use useFormStatus
+  const FormContent = () => {
+    const { pending } = useFormStatus();
+    return (
+        <div className="grid gap-8 md:grid-cols-2">
+            <div className="space-y-6">
+                 <div className="space-y-2">
+                    <Label>Analysis Type</Label>
+                    <RadioGroup name="analysisType" defaultValue="general" className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <RadioGroupItem value="general" id="general" className="peer sr-only" />
+                            <Label htmlFor="general" className="flex h-full flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                                <Bot className="mb-3 h-6 w-6" />
+                                General Summary
+                            </Label>
+                        </div>
+                        <div>
+                            <RadioGroupItem value="candidate_analysis" id="candidate_analysis" className="peer sr-only" />
+                            <Label htmlFor="candidate_analysis" className="flex h-full flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                                <Microscope className="mb-3 h-6 w-6" />
+                                Planet Candidate
+                            </Label>
+                        </div>
+                    </RadioGroup>
+                </div>
+
+                <div className="space-y-2">
+                <Label htmlFor="dataFile">Exoplanet Data File</Label>
+                <div className="relative">
+                    <Input id="dataFile" name="dataFile" type="file" required accept=".csv,.json" className="pl-10" />
+                    <FileText className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+                </div>
+                <p className="text-xs text-muted-foreground">For Candidate Analysis, upload a CSV with the first data row being the planet to analyze.</p>
+                {state.errors?.dataFile && (
+                    <p className="text-sm font-medium text-destructive">{state.errors.dataFile[0]}</p>
+                )}
+                </div>
+                <SubmitButton />
+            </div>
+
+            <div className="relative">
+                <Card className="h-full min-h-[250px]">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Bot />
+                            AI Analysis Results
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <AnalysisResults state={state} pending={pending} />
+                    </CardContent>
+                </Card>
+            </div>
+        </div>
+    );
+  }
 
   useEffect(() => {
     if (state.message && state.message !== 'Analysis complete.') {
@@ -136,62 +191,11 @@ export function AnalysisForm() {
         description: state.message,
       });
     }
-    if (state.message === 'Analysis complete.') {
-        // Do not reset the form, so the user can see the file they uploaded.
-        // formRef.current?.reset();
-    }
   }, [state, toast]);
 
   return (
-    <div className="grid gap-8 md:grid-cols-2">
-      <form action={formAction} ref={formRef} className="space-y-6">
-        <div className="space-y-2">
-            <Label>Analysis Type</Label>
-            <RadioGroup name="analysisType" defaultValue="general" className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                 <div>
-                    <RadioGroupItem value="general" id="general" className="peer sr-only" />
-                    <Label htmlFor="general" className="flex h-full flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
-                        <Bot className="mb-3 h-6 w-6" />
-                        General Summary
-                    </Label>
-                </div>
-                <div>
-                    <RadioGroupItem value="candidate_analysis" id="candidate_analysis" className="peer sr-only" />
-                    <Label htmlFor="candidate_analysis" className="flex h-full flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
-                        <Microscope className="mb-3 h-6 w-6" />
-                        Planet Candidate
-                    </Label>
-                </div>
-            </RadioGroup>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="dataFile">Exoplanet Data File</Label>
-          <div className="relative">
-            <Input id="dataFile" name="dataFile" type="file" required accept=".csv,.json" className="pl-10" />
-            <FileText className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-          </div>
-          <p className="text-xs text-muted-foreground">For Candidate Analysis, upload a CSV with the first data row being the planet to analyze.</p>
-          {state.errors?.dataFile && (
-            <p className="text-sm font-medium text-destructive">{state.errors.dataFile[0]}</p>
-          )}
-        </div>
-        <SubmitButton />
-      </form>
-      
-      <div className="relative">
-        <Card className="h-full min-h-[250px]">
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <Bot />
-                    AI Analysis Results
-                </CardTitle>
-            </CardHeader>
-            <CardContent>
-                <AnalysisResults state={state} pending={pending} />
-            </CardContent>
-        </Card>
-      </div>
-    </div>
+    <form action={formAction} ref={formRef}>
+      <FormContent />
+    </form>
   );
 }
