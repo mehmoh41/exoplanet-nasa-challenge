@@ -60,7 +60,7 @@ function AnalysisResults({ state }: { state: AnalysisState }) {
     if (pending) {
         return (
             <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground h-48">
-                <Loader2 className="h-8 w-8 animate-spin text-accent" />
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 <p>AI is processing the data...</p>
             </div>
         )
@@ -145,14 +145,14 @@ function FormContent({ state }: { state: AnalysisState }) {
           >
             <div>
               <RadioGroupItem value="general" id="general" className="peer sr-only" />
-              <Label htmlFor="general" className="flex h-full flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+              <Label htmlFor="general" className="flex h-full flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-primary/90 hover:text-primary-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
                 <Bot className="mb-3 h-6 w-6" />
                 General Summary
               </Label>
             </div>
             <div>
               <RadioGroupItem value="candidate_analysis" id="candidate_analysis" className="peer sr-only" />
-              <Label htmlFor="candidate_analysis" className="flex h-full flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+              <Label htmlFor="candidate_analysis" className="flex h-full flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-primary/90 hover:text-primary-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
                 <Microscope className="mb-3 h-6 w-6" />
                 Planet Candidate
               </Label>
