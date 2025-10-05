@@ -2,6 +2,7 @@
 
 import { analyzeExoplanetData } from '@/ai/flows/analyze-exoplanet-data';
 import { processLightCurve } from '@/ai/flows/process-light-curve';
+import { analyzePlanetCandidate } from '@/ai/flows/planet-candidate-analysis';
 import { z } from 'zod';
 import Papa from 'papaparse';
 
@@ -13,7 +14,7 @@ const FormSchema = z.object({
       (file) => file?.type === 'text/csv' || file?.type === 'application/json',
       'Only .csv and .json files are accepted.'
     ),
-  analysisType: z.enum(['general', 'light_curve']),
+  analysisType: z.enum(['general', 'light_curve', 'candidate_analysis']),
 });
 
 export type AnalysisState = {
@@ -24,6 +25,12 @@ export type AnalysisState = {
     analysisType?: string[];
   };
 };
+
+const REQUIRED_CANDIDATE_COLUMNS = [
+    "kepler_name", "kepoi_name", "koi_disposition",
+    "koi_score", "koi_period", "koi_duration", "koi_depth",
+    "koi_prad", "koi_teq", "koi_insol", "koi_model_snr", "koi_steff"
+];
 
 export async function performAnalysis(
   prevState: AnalysisState,
@@ -46,23 +53,40 @@ export async function performAnalysis(
 
   try {
     const fileContent = await file.text();
+    const parsedCsv = Papa.parse(fileContent, { header: true, skipEmptyLines: true });
+    const fields = parsedCsv.meta.fields;
+
+    if (!fields) {
+        return { message: 'Could not parse headers from the CSV file.' };
+    }
 
     if (analysisType === 'light_curve') {
-       // For light curve, ensure we have time and flux columns
-       const parsedCsv = Papa.parse(fileContent, { header: true, skipEmptyLines: true });
-       const fields = parsedCsv.meta.fields;
-       if (!fields || !fields.includes('time') || !fields.includes('flux')) {
+       if (!fields.includes('time') || !fields.includes('flux')) {
          return { message: 'Light curve analysis requires a CSV with "time" and "flux" columns.' };
        }
-
       const result = await processLightCurve({ lightCurveData: fileContent });
       if (!result.analysisSummary) {
         return { message: 'AI analysis failed to produce results. Please try a different file.' };
       }
       return { message: 'Analysis complete.', results: result };
 
-    } else {
-      // General Analysis
+    } else if (analysisType === 'candidate_analysis') {
+      const missingColumns = REQUIRED_CANDIDATE_COLUMNS.filter(col => !fields.includes(col));
+      if (missingColumns.length > 0) {
+        return { message: `Missing required columns for candidate analysis: ${missingColumns.join(', ')}` };
+      }
+      if (!parsedCsv.data || parsedCsv.data.length === 0) {
+        return { message: 'CSV file contains no data rows to analyze.' };
+      }
+      // We will only analyze the first row for this feature
+      const firstRow = parsedCsv.data[0] as any;
+      const result = await analyzePlanetCandidate(firstRow);
+      if (!result.predicted_disposition) {
+         return { message: 'AI analysis failed to produce a classification. Please try a different file.' };
+      }
+      return { message: 'Analysis complete.', results: result };
+
+    } else { // General Analysis
       const result = await analyzeExoplanetData({ data: fileContent });
       if (!result) {
           return { message: 'AI analysis failed to produce results. Please try a different file.' };
