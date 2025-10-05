@@ -77,7 +77,6 @@ export function Header() {
                <Button variant="ghost" size="icon" asChild className="hover:bg-primary/20">
 
           <a
-            class="h-7 h-7 bg-transparent hover:bg-blue-500 p-4"
             href="https://github.com/mehmoh41/exoplanet-nasa-challenge"
             target="_blank"
             rel="noopener noreferrer"
